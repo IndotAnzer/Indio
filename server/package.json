@@ -1,0 +1,14 @@
+{
+  "name": "@indio/server",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "python3 -m venv --system-site-packages .venv && ./.venv/bin/python -m pip install -r requirements.txt",
+    "dev": "./.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port ${INDIO_PORT:-8787} --reload",
+    "start": "./.venv/bin/python -m uvicorn app.main:app --host ${INDIO_HOST:-0.0.0.0} --port ${INDIO_PORT:-8787}",
+    "build": "./.venv/bin/python -m compileall app",
+    "typecheck": "./.venv/bin/python -m compileall app tests",
+    "test": "./.venv/bin/python app/scripts/run_tests.py"
+  }
+}

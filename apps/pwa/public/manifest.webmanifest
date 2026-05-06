@@ -1,0 +1,10 @@
+{
+  "name": "Indio",
+  "short_name": "Indio",
+  "description": "Personal AI radio dashboard",
+  "display": "standalone",
+  "background_color": "#101412",
+  "theme_color": "#101412",
+  "start_url": "/"
+}
+

@@ -1,0 +1,17 @@
+node_modules
+dist
+.DS_Store
+.env
+*.tsbuildinfo
+apps/pwa/dist
+apps/pwa/vite.config.js
+apps/pwa/vite.config.d.ts
+server/dist
+server/data/state.db
+server/data/indio-v2.db
+server/.venv
+__pycache__
+.pytest_cache
+*.pyc
+server/cache/tts/*
+!server/cache/tts/.gitkeep

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "say",
+    "play",
+    "reason",
+    "segue",
+    "mood",
+    "mode"
+  ],
+  "properties": {
+    "say": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "play": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "trackId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "oneOf": [
+          {
+            "required": [
+              "query"
+            ]
+          },
+          {
+            "required": [
+              "trackId"
+            ]
+          }
+        ],
+        "additionalProperties": false
+      }
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "segue": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "mood": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "narrated",
+        "music-only"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

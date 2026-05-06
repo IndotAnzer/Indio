@@ -1,0 +1,10 @@
+{
+  "id": "99f365d718792b11",
+  "text": "换一首，保持同一条气流，但让纹理更轻一点。",
+  "audioUrl": "http://localhost:8787/media/tts/99f365d718792b11.wav",
+  "provider": "mimo",
+  "format": "wav",
+  "mimeType": "audio/wav",
+  "createdAt": "2026-04-23T09:22:17.846Z",
+  "cached": false
+}

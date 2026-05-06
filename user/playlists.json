@@ -1,0 +1,23 @@
+[
+  {
+    "id": "sunrise-focus",
+    "name": "Sunrise Focus",
+    "mood": "morning",
+    "tracks": [
+      "Morning Haze",
+      "Window Seat",
+      "Slow Current"
+    ]
+  },
+  {
+    "id": "city-soft",
+    "name": "City Soft",
+    "mood": "work",
+    "tracks": [
+      "Parallel Lines",
+      "Soft Circuit",
+      "Warm Transit"
+    ]
+  }
+]
+
