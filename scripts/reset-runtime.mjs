@@ -5,12 +5,10 @@ import { dirname, resolve } from "node:path";
 const rootDir = resolve(new URL("..", import.meta.url).pathname);
 const shouldBackup = process.argv.includes("--backup");
 const runtimePaths = [
-  "server/data",
-  "server/cache/tts",
-  "server/dist",
+  "indio/indio-v2.db",
+  "indio/cache/tts",
   "apps/pwa/dist",
   "packages/contracts/dist",
-  "server/tsconfig.tsbuildinfo",
   "apps/pwa/tsconfig.tsbuildinfo",
   "packages/contracts/tsconfig.tsbuildinfo"
 ];
@@ -73,9 +71,8 @@ for (const path of runtimePaths) {
   await resetPath(path);
 }
 
-await mkdir(resolve(rootDir, "server/data"), { recursive: true });
-await mkdir(resolve(rootDir, "server/cache/tts"), { recursive: true });
-await writeFile(resolve(rootDir, "server/cache/tts/.gitkeep"), "", "utf8");
+await mkdir(resolve(rootDir, "indio/cache/tts"), { recursive: true });
+await writeFile(resolve(rootDir, "indio/cache/tts/.gitkeep"), "", "utf8");
 
 if (backupDir) {
   console.log(`Runtime artifacts backed up to ${backupDir}`);

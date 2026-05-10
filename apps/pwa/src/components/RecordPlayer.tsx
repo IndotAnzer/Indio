@@ -29,6 +29,7 @@ export function RecordPlayer(props: RecordPlayerProps) {
   const artworkUrl = currentTrack?.artworkUrl ?? "/indio-placeholder.png";
   const backgroundImage = `url(${artworkUrl})`;
   const showMusicFlow = Boolean(currentTrack && props.isPlaybackPlaying && !props.isNarrationPlaying);
+  const narrationReady = Boolean(props.nowState?.narrationAudioUrl);
 
   return (
     <section className="record-scene" style={{ "--artwork": backgroundImage } as CSSProperties}>
@@ -87,7 +88,7 @@ export function RecordPlayer(props: RecordPlayerProps) {
                   <span>Music🎵</span>
                 </div>
               </div>
-            ) : props.nowState?.narrationText ? (
+            ) : props.nowState?.narrationText && narrationReady ? (
               <div
                 className={`karaoke-line ${props.isNarrationPlaying ? "is-speaking" : ""}`}
                 aria-label={props.nowState.narrationText}
@@ -121,6 +122,8 @@ export function RecordPlayer(props: RecordPlayerProps) {
                   );
                 })}
               </div>
+            ) : props.nowState?.narrationText ? (
+              <p className="narration-placeholder">口播音频准备中。</p>
             ) : (
               <p className="narration-placeholder">
                 {currentTrack ? "这一轮没有口播，先把音乐往下接。" : "等你发第一句，电台就开机。"}

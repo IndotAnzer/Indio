@@ -28,7 +28,7 @@ beforeEach(() => {
           plan: [],
           music: {
             configured: false,
-            provider: "fallback",
+            provider: "netease-api-enhanced",
             baseUrl: null,
             cookieConfigured: false,
             unblockEnabled: false,
@@ -39,22 +39,22 @@ beforeEach(() => {
             loginSession: null,
             detail: null
           },
-          codex: {
-            authSource: "shared-cli",
-            projectApiKeyConfigured: false,
-            projectApiKeyLabel: null,
-            compatibleApiKeyConfigured: false,
-            compatibleApiKeyLabel: null,
-            compatibleBaseUrl: "https://api.openai.com/v1",
-            compatibleModel: "gpt-5.4-mini",
-            compatibleResponseFormat: "json-object"
-          },
-          codexStatus: {
-            kind: "codex-cli",
-            state: "ready",
-            authMode: "api-key",
+          agent: {
+            apiKeyConfigured: false,
+            apiKeyLabel: null,
+            baseUrl: "https://api.openai.com/v1",
             model: "gpt-5.4-mini",
-            detail: "Authenticated via API key.",
+            reasoningEffort: "low",
+            maxTurns: 8,
+            timeoutMs: 45000,
+            traceEnabled: true
+          },
+          agentStatus: {
+            kind: "responses-agent",
+            state: "ready",
+            authMode: "unknown",
+            model: "gpt-5.4-mini",
+            detail: "Indio Agent runtime is ready.",
             durationMs: 0
           },
           tts: {
@@ -65,6 +65,13 @@ beforeEach(() => {
             detail: null
           }
         })
+      };
+    }
+
+    if (url.includes("/api/agent/runs")) {
+      return {
+        ok: true,
+        json: async () => ({ runs: [] })
       };
     }
 

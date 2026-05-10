@@ -4,20 +4,19 @@
   "version": "0.1.0",
   "workspaces": [
     "packages/*",
-    "server",
     "apps/*"
   ],
   "scripts": {
-    "setup:python": "npm run setup --workspace @indio/server",
     "build": "node scripts/with-dev-node.mjs npm run build:workspaces",
-    "build:workspaces": "npm run build --workspace @indio/contracts && npm run build --workspace @indio/server && npm run build --workspace @indio/pwa",
-    "typecheck": "npm run build --workspace @indio/contracts && npm run typecheck --workspace @indio/server && npm run typecheck --workspace @indio/pwa",
+    "build:workspaces": "npm run build --workspace @indio/contracts && npm run build --workspace @indio/pwa",
+    "typecheck": "npm run build --workspace @indio/contracts && npm run typecheck --workspace @indio/pwa",
     "test": "node scripts/with-dev-node.mjs npm run test:workspaces",
     "test:workspaces": "npm run test --workspaces --if-present",
     "clean:runtime": "node scripts/reset-runtime.mjs",
+    "prepare:api-enhanced-cloudrun": "node scripts/prepare-api-enhanced-cloudrun.mjs",
     "dev": "node scripts/dev-all.mjs",
     "dev:app": "node scripts/dev-all.mjs",
-    "dev:server-pwa": "concurrently -n server,pwa -c green,blue \"npm run dev --workspace @indio/server\" \"npm run dev --workspace @indio/pwa\"",
+    "dev:agent-pwa": "concurrently -n indio-agent,pwa -c green,blue \"cd agent && PYTHONPATH=. INDIO_PROJECT_ROOT=.. python3 -m uvicorn server:app --host 0.0.0.0 --port 8900 --reload\" \"VITE_INDIO_API_URL=http://localhost:8900 npm run dev --workspace @indio/pwa\"",
     "check": "npm run typecheck && npm run test && npm run build"
   },
   "devDependencies": {

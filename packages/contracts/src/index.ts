@@ -35,7 +35,7 @@ export interface MessageRecord {
   metadata?: Record<string, unknown>;
 }
 
-export type PlaybackSource = "netease" | "fallback";
+export type PlaybackSource = "netease" | "unavailable";
 
 export interface Track {
   id: string;
@@ -85,11 +85,9 @@ export interface TrackRequest {
   reason?: string;
 }
 
-export type ProviderKind = "codex-cli" | "fallback" | "local-control" | "responses-api";
-export type ProviderState = "ready" | "fallback" | "error" | "disabled";
+export type ProviderKind = "responses-agent" | "local-control-tool" | "netease" | "error";
+export type ProviderState = "ready" | "error" | "disabled";
 export type AuthMode = "chatgpt" | "api-key" | "none" | "unknown";
-export type CodexAuthSource = "shared-cli" | "project-api" | "openai-compatible";
-export type CompatibleResponsesFormat = "json-object" | "json-schema";
 
 export interface ProviderInfo {
   kind: ProviderKind;
@@ -100,15 +98,15 @@ export interface ProviderInfo {
   durationMs: number | null;
 }
 
-export interface CodexSettings {
-  authSource: CodexAuthSource;
-  projectApiKeyConfigured: boolean;
-  projectApiKeyLabel: string | null;
-  compatibleApiKeyConfigured: boolean;
-  compatibleApiKeyLabel: string | null;
-  compatibleBaseUrl: string;
-  compatibleModel: string;
-  compatibleResponseFormat: CompatibleResponsesFormat;
+export interface AgentSettings {
+  apiKeyConfigured: boolean;
+  apiKeyLabel: string | null;
+  baseUrl: string;
+  model: string;
+  reasoningEffort: string;
+  maxTurns: number;
+  timeoutMs: number;
+  traceEnabled: boolean;
 }
 
 export interface Decision {
@@ -163,7 +161,7 @@ export interface NeteaseQrLoginStatus {
 
 export interface MusicStatus {
   configured: boolean;
-  provider: "netease-api-enhanced" | "fallback";
+  provider: "netease-api-enhanced";
   baseUrl: string | null;
   cookieConfigured: boolean;
   unblockEnabled: boolean;
@@ -176,7 +174,7 @@ export interface MusicStatus {
 
 export interface MusicBootstrap {
   configured: boolean;
-  provider: "netease-api-enhanced" | "fallback";
+  provider: "netease-api-enhanced";
   baseUrl: string | null;
   cookieConfigured: boolean;
   unblockEnabled: boolean;
@@ -254,6 +252,48 @@ export interface RunTurnResult {
   nowState: NowState;
   plan: PlanEntry[];
   voice: VoiceAsset | null;
+  agentRunId: string | null;
+}
+
+export type AgentRunStatus = "running" | "completed" | "failed";
+export type AgentStepType = "response" | "tool-call" | "final" | "error";
+export type ToolPermission = "read-only" | "controlled-write" | "requires-approval";
+
+export interface AgentRun {
+  id: string;
+  source: TriggerSource;
+  userInput: string | null;
+  status: AgentRunStatus;
+  model: string;
+  responseId: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+  durationMs: number | null;
+  finalOutput: Record<string, unknown> | null;
+  error: string | null;
+}
+
+export interface AgentStep {
+  id: string;
+  runId: string;
+  agentName: string | null;
+  stepType: AgentStepType;
+  payload: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface AgentToolCall {
+  id: string;
+  runId: string;
+  agentName: string | null;
+  toolName: string;
+  permission: ToolPermission;
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  error: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+  durationMs: number | null;
 }
 
 export type StreamEvent =
@@ -269,7 +309,7 @@ export type StreamEvent =
 export interface HealthResponse {
   ok: true;
   mode: string;
-  codex: ProviderInfo;
+  agent: ProviderInfo;
   music: MusicStatus;
   tts: TtsStatus;
 }
@@ -282,8 +322,8 @@ export interface BootstrapResponse {
   now: NowState | null;
   plan: PlanEntry[];
   music: MusicBootstrap;
-  codex: CodexSettings;
-  codexStatus: ProviderInfo;
+  agent: AgentSettings;
+  agentStatus: ProviderInfo;
   tts: TtsStatus;
 }
 
@@ -305,12 +345,22 @@ export interface MusicBootstrapResponse {
   music: MusicBootstrap;
 }
 
-export interface CodexBootstrapResponse {
-  settings: CodexSettings;
+export interface AgentBootstrapResponse {
+  settings: AgentSettings;
   status: ProviderInfo;
 }
 
-export type CodexSettingsResponse = CodexBootstrapResponse;
+export type AgentSettingsResponse = AgentBootstrapResponse;
+
+export interface AgentRunsResponse {
+  runs: AgentRun[];
+}
+
+export interface AgentRunDetailResponse {
+  run: AgentRun;
+  steps: AgentStep[];
+  toolCalls: AgentToolCall[];
+}
 
 export interface MusicQrCreateResponse {
   session: NeteaseQrLoginSession;
@@ -324,22 +374,6 @@ export interface MusicQrCheckResponse {
 export interface MusicLogoutResponse {
   ok: true;
   music: MusicBootstrap;
-}
-
-export interface UpdateCodexSettingsRequest {
-  authSource: CodexAuthSource;
-  projectApiKey?: string;
-  clearProjectApiKey?: boolean;
-  compatibleApiKey?: string;
-  compatibleBaseUrl?: string;
-  compatibleModel?: string;
-  compatibleResponseFormat?: CompatibleResponsesFormat;
-  clearCompatibleApiKey?: boolean;
-}
-
-export interface UpdateCodexSettingsResponse {
-  settings: CodexSettings;
-  status: ProviderInfo;
 }
 
 export interface ChatRequest {

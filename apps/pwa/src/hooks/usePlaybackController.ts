@@ -34,32 +34,8 @@ function estimateNarrationDurationMs(text: string): number {
   return Math.min(18_000, Math.max(2_400, speakableCount * 170 + 700));
 }
 
-function waitForNarrationVisual(text: string, signal: AbortSignal): Promise<void> {
-  const durationMs = estimateNarrationDurationMs(text);
-
-  return new Promise((resolve, reject) => {
-    if (signal.aborted) {
-      reject(new DOMException("Playback was superseded.", "AbortError"));
-      return;
-    }
-
-    let timer: number;
-    let abort = () => {};
-    const cleanup = () => {
-      window.clearTimeout(timer);
-      signal.removeEventListener("abort", abort);
-    };
-    timer = window.setTimeout(() => {
-      cleanup();
-      resolve();
-    }, durationMs);
-    abort = () => {
-      cleanup();
-      reject(new DOMException("Playback was superseded.", "AbortError"));
-    };
-
-    signal.addEventListener("abort", abort, { once: true });
-  });
+function playbackKeyForState(state: NowState): string {
+  return `${state.segmentId}:${state.narrationAudioUrl ?? "pending-narration"}`;
 }
 
 export function buildNarrationChars(text: string, progress: number, isPlaying: boolean): Array<{
@@ -176,6 +152,9 @@ export function usePlaybackController(
 
   const requestAdvancedState = useCallback(async (finishedSegmentId: string): Promise<NowState> => {
     const response = await advanceRadio(finishedSegmentId);
+    if (!response.nowState) {
+      throw new Error("下一首还没生成出来，请再试一次。");
+    }
     return response.nowState;
   }, []);
 
@@ -252,69 +231,49 @@ export function usePlaybackController(
     stopAudio(outputAudio);
 
     if (state.mode === "narrated" && !options?.skipNarration && lastSpokenSegmentId.current !== state.segmentId) {
-      if (state.narrationAudioUrl) {
-        try {
-          if (!isCurrentPlayback()) {
-            return;
-          }
+      if (!state.narrationAudioUrl) {
+        setNarrationProgress(0);
+        setIsNarrationPlaying(false);
+        setIsPlaybackPlaying(false);
+        setIsPlaybackPaused(false);
+        setMusicError("口播音频准备中，稍等一下。");
+        return;
+      }
 
-          playbackPhaseRef.current = "narration";
-          setNarrationProgress(0);
-          setIsNarrationPlaying(true);
-          setIsPlaybackPlaying(true);
-          setIsPlaybackPaused(false);
-          await playNarrationAudio(outputAudio, state.narrationAudioUrl, abortController.signal, () => {
-            startNarrationProgressLoop(state.narrationText, outputAudio, abortController.signal);
-          });
-
-          if (!isCurrentPlayback()) {
-            return;
-          }
-
-          stopNarrationProgressLoop();
-          lastSpokenSegmentId.current = state.segmentId;
-          setNarrationProgress(1);
-          setIsNarrationPlaying(false);
-        } catch (playError: unknown) {
-          if (isAbortError(playError) || !isCurrentPlayback()) {
-            return;
-          }
-
-          stopNarrationProgressLoop();
-          playbackPhaseRef.current = "idle";
-          setIsNarrationPlaying(false);
-          setIsPlaybackPlaying(false);
-          setIsPlaybackPaused(false);
-          setMusicError(playbackErrorMessage(playError, "播报音频加载失败，当前只显示字幕。"));
+      try {
+        if (!isCurrentPlayback()) {
+          return;
         }
-      } else {
-        try {
-          playbackPhaseRef.current = "narration";
-          setIsNarrationPlaying(true);
-          setIsPlaybackPlaying(true);
-          setIsPlaybackPaused(false);
+
+        playbackPhaseRef.current = "narration";
+        setNarrationProgress(0);
+        setIsNarrationPlaying(true);
+        setIsPlaybackPlaying(true);
+        setIsPlaybackPaused(false);
+        await playNarrationAudio(outputAudio, state.narrationAudioUrl, abortController.signal, () => {
           startNarrationProgressLoop(state.narrationText, outputAudio, abortController.signal);
-          await waitForNarrationVisual(state.narrationText, abortController.signal);
+        });
 
-          if (!isCurrentPlayback()) {
-            return;
-          }
-
-          stopNarrationProgressLoop();
-          lastSpokenSegmentId.current = state.segmentId;
-          setNarrationProgress(1);
-          setIsNarrationPlaying(false);
-        } catch (playError: unknown) {
-          if (isAbortError(playError) || !isCurrentPlayback()) {
-            return;
-          }
-
-          stopNarrationProgressLoop();
-          playbackPhaseRef.current = "idle";
-          setIsNarrationPlaying(false);
-          setIsPlaybackPlaying(false);
-          setIsPlaybackPaused(false);
+        if (!isCurrentPlayback()) {
+          return;
         }
+
+        stopNarrationProgressLoop();
+        lastSpokenSegmentId.current = state.segmentId;
+        setNarrationProgress(1);
+        setIsNarrationPlaying(false);
+      } catch (playError: unknown) {
+        if (isAbortError(playError) || !isCurrentPlayback()) {
+          return;
+        }
+
+        stopNarrationProgressLoop();
+        playbackPhaseRef.current = "idle";
+        setIsNarrationPlaying(false);
+        setIsPlaybackPlaying(false);
+        setIsPlaybackPaused(false);
+        setMusicError(playbackErrorMessage(playError, "播报音频加载失败，请稍后重试。"));
+        return;
       }
     }
 
@@ -344,7 +303,7 @@ export function usePlaybackController(
         if (current.preparedNext) {
           const promoted = materializePreparedSegment(current.preparedNext);
           skipPlaybackCleanupForSegmentRef.current = state.segmentId;
-          lastPlaybackKey.current = promoted.segmentId;
+          lastPlaybackKey.current = playbackKeyForState(promoted);
           publishNowStateUpdate(promoted);
           void requestAdvancedState(state.segmentId).then((syncedState) => {
             if (syncedState.segmentId === promoted.segmentId) {
@@ -369,7 +328,7 @@ export function usePlaybackController(
           advancingSegmentRef.current = null;
 
           if (advancedState.segmentId !== state.segmentId) {
-            lastPlaybackKey.current = advancedState.segmentId;
+            lastPlaybackKey.current = playbackKeyForState(advancedState);
             publishNowStateUpdate(advancedState);
             void playNowState(advancedState);
             return;
@@ -477,7 +436,7 @@ export function usePlaybackController(
     setCanPlayPrevious(previousStatesRef.current.length > 0);
     suppressHistoryCaptureRef.current = true;
     skipPlaybackCleanupForSegmentRef.current = currentNowStateRef.current?.segmentId ?? null;
-    lastPlaybackKey.current = previousState.segmentId;
+    lastPlaybackKey.current = playbackKeyForState(previousState);
     publishNowStateUpdate(previousState);
     await playNowState(previousState, { requireUnlock: true });
   }, [playNowState, publishNowStateUpdate, setMusicError]);
@@ -496,7 +455,7 @@ export function usePlaybackController(
     if (nowState.preparedNext) {
       const promoted = materializePreparedSegment(nowState.preparedNext);
       skipPlaybackCleanupForSegmentRef.current = nowState.segmentId;
-      lastPlaybackKey.current = promoted.segmentId;
+      lastPlaybackKey.current = playbackKeyForState(promoted);
       publishNowStateUpdate(promoted);
       void requestAdvancedState(nowState.segmentId).then((syncedState) => {
         if (syncedState.segmentId === promoted.segmentId) {
@@ -523,7 +482,7 @@ export function usePlaybackController(
 
       if (advancedState.segmentId !== nowState.segmentId) {
         skipPlaybackCleanupForSegmentRef.current = nowState.segmentId;
-        lastPlaybackKey.current = advancedState.segmentId;
+        lastPlaybackKey.current = playbackKeyForState(advancedState);
         publishNowStateUpdate(advancedState);
         await playNowState(advancedState);
       }
@@ -754,7 +713,8 @@ export function usePlaybackController(
       return;
     }
 
-    const playbackKey = nowState.segmentId;
+    const playbackKey = playbackKeyForState(nowState);
+    const playbackSegmentId = nowState.segmentId;
 
     if (lastPlaybackKey.current === playbackKey) {
       return;
@@ -764,7 +724,7 @@ export function usePlaybackController(
     void playNowState(nowState);
 
     return () => {
-      if (skipPlaybackCleanupForSegmentRef.current === playbackKey) {
+      if (skipPlaybackCleanupForSegmentRef.current === playbackSegmentId) {
         skipPlaybackCleanupForSegmentRef.current = null;
         return;
       }

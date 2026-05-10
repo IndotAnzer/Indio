@@ -6,12 +6,11 @@ dist
 apps/pwa/dist
 apps/pwa/vite.config.js
 apps/pwa/vite.config.d.ts
-server/dist
-server/data/state.db
-server/data/indio-v2.db
-server/.venv
+apps/wechat-miniprogram/project.private.config.json
 __pycache__
 .pytest_cache
 *.pyc
-server/cache/tts/*
-!server/cache/tts/.gitkeep
+indio/indio-v2.db
+indio/users/
+indio/cache/tts/*
+!indio/cache/tts/.gitkeep
