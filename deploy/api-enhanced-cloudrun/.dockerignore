@@ -1,0 +1,10 @@
+source/.DS_Store
+source/.git
+source/.github
+source/.husky
+source/node_modules
+source/test
+source/examples
+source/module_example
+source/*.test.js
+source/.env*

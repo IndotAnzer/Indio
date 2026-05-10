@@ -1,0 +1,116 @@
+<view class="radio-shell">
+  <view class="record-scene">
+    <image wx:if="{{artworkUrl}}" class="scene-backdrop-image" src="{{artworkUrl}}" mode="aspectFill" />
+    <view class="scene-shade"></view>
+
+    <view class="station-bar">
+      <view>
+        <text class="station-kicker">Indio</text>
+        <text class="station-title">{{stationTitle}}</text>
+      </view>
+      <view class="status-pill">{{musicStatusText}}</view>
+    </view>
+
+    <view class="turntable-layout">
+      <view class="vinyl-wrap {{isPlaybackPlaying ? 'is-spinning' : ''}}">
+        <view class="vinyl-disc">
+          <image wx:if="{{artworkUrl}}" class="vinyl-art" src="{{artworkUrl}}" mode="aspectFill" />
+          <view wx:else class="vinyl-art vinyl-art-empty"></view>
+          <view class="vinyl-label">
+            <text>{{currentTrack ? 'ON AIR' : 'STANDBY'}}</text>
+          </view>
+        </view>
+        <view class="tone-arm"></view>
+      </view>
+
+      <view class="track-panel">
+        <view class="live-pill {{currentTrack ? 'is-live' : ''}}">{{currentTrack ? 'ON AIR' : 'STANDBY'}}</view>
+        <text class="track-title">{{trackTitle}}</text>
+        <text class="track-line">{{trackLine}}</text>
+
+        <view class="on-air-composer">
+          <textarea
+            class="prompt-input"
+            auto-height
+            maxlength="240"
+            placeholder="今天想听什么"
+            value="{{draft}}"
+            bindinput="handleDraftInput"
+          />
+          <button class="primary-button" disabled="{{isSending}}" bindtap="submitTurn">
+            {{isSending ? '生成中' : '发送给电台'}}
+          </button>
+        </view>
+
+        <view class="narration-reader">
+          <view wx:if="{{showMusicFlow}}" class="music-flow" aria-label="正在播放音乐">
+            <view class="music-flow-track">Music🎵</view>
+          </view>
+          <view wx:elif="{{nowState && nowState.narrationText && narrationReady}}" class="karaoke-line {{isNarrationPlaying ? 'is-speaking' : ''}}">
+            <block wx:for="{{narrationChars}}" wx:key="key">
+              <text
+                class="karaoke-char {{item.state === 'read' ? 'is-read' : ''}} {{item.state === 'active' ? 'is-active' : ''}} {{item.state === 'space' ? 'is-space' : ''}} {{item.state === 'break' ? 'is-break' : ''}}"
+              >{{item.char}}</text>
+            </block>
+          </view>
+          <text wx:elif="{{nowState && nowState.narrationText}}" class="narration-placeholder">口播音频准备中。</text>
+          <text wx:else class="narration-placeholder">{{narrationText}}</text>
+        </view>
+
+        <view class="transport-row">
+          <button class="transport-button is-primary" disabled="{{!currentTrack}}" bindtap="handlePlayPause">
+            {{playbackLabel}}
+          </button>
+          <button class="transport-button" disabled="{{!currentTrack}}" bindtap="handleNext">下一首</button>
+        </view>
+
+        <text wx:if="{{musicMessage}}" class="radio-message is-warning">{{musicMessage}}</text>
+        <text wx:if="{{error}}" class="radio-message is-warning">{{error}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="control-bands">
+    <view class="deck-panel">
+      <view class="panel-head">
+        <text class="station-kicker">Netease</text>
+        <text class="panel-tag">{{musicStatusText}}</text>
+      </view>
+
+      <view wx:if="{{music && music.loggedIn}}" class="login-block">
+        <text class="radio-message">当前已连接 {{music.user.nickname}}，电台会优先从你的歌单里挑歌。</text>
+        <button class="ghost-button" disabled="{{isLoggingOutMusic}}" bindtap="disconnectMusic">
+          {{isLoggingOutMusic ? '断开中' : '断开网易云'}}
+        </button>
+      </view>
+
+      <view wx:else class="login-block">
+        <text class="radio-message">网易云私人歌单待接入。</text>
+        <button class="secondary-button" disabled="{{isStartingMusicLogin}}" bindtap="handleMusicLoginTap">
+          {{isStartingMusicLogin ? (qrSession ? '刷新中' : '生成二维码') : (qrSession ? '刷新二维码' : '连接网易云')}}
+        </button>
+        <image wx:if="{{qrImageSrc}}" class="qr-image" src="{{qrImageSrc}}" mode="aspectFit" />
+        <text wx:if="{{qrStatusMessage}}" class="radio-message">{{qrStatusMessage}}</text>
+      </view>
+    </view>
+
+    <view class="deck-panel">
+      <view class="panel-head">
+        <text class="station-kicker">Coming Up</text>
+        <text class="panel-tag">{{agentStatusText}}</text>
+      </view>
+
+      <view wx:if="{{queue.length}}" class="coming-list">
+        <view wx:for="{{queue}}" wx:key="id" class="coming-item">
+          <text class="coming-index">0{{index + 1}}</text>
+          <view>
+            <text class="coming-title">{{item.title}}</text>
+            <text class="coming-line">{{item.artist}} · {{item.album}}</text>
+          </view>
+        </view>
+      </view>
+
+      <text wx:else class="radio-message">下一段还在候场。</text>
+    </view>
+  </view>
+</view>

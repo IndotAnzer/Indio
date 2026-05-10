@@ -1,0 +1,15 @@
+{
+  "taste": {
+    "updatedAt": "2026-05-08T05:29:21+08:00",
+    "source": "llm",
+    "model": "qwen3.5-plus",
+    "trackCount": 221,
+    "playlistCount": 6
+  },
+  "habit": {
+    "updatedAt": "2026-05-09T17:30:24+08:00",
+    "source": "manual-filtered",
+    "model": null,
+    "eventCount": 3
+  }
+}

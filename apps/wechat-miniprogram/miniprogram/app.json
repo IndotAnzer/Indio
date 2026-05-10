@@ -1,0 +1,22 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "Indio",
+    "navigationBarBackgroundColor": "#080908",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#080908",
+    "backgroundTextStyle": "dark"
+  },
+  "networkTimeout": {
+    "request": 180000,
+    "connectSocket": 10000
+  },
+  "requiredBackgroundModes": [
+    "audio"
+  ],
+  "cloud": true,
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
